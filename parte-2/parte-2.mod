@@ -60,7 +60,7 @@ s.t. orden_prioridad{i in 1..l-1, j in COLUMNAS, k in NIVELES}:
  *     restriccion solo se plantea para k = 1..h-1.                    */
 s.t. capacidad{i in FILAS, j in COLUMNAS, k in 1..h-1}:
     sum{c in CAJAS} y[c] * x[c,i,j,k]
-        >= sum{kk in k+1..h, c in CAJAS} w[c] * x[c,i,j,kk];
+        >= sum{c in CAJAS, kk in k+1..h} w[c] * x[c,i,j,kk];
 
 solve;
 

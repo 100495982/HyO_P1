@@ -28,7 +28,7 @@ var x{c in CAJAS, i in FILAS, j in COLUMNAS}, binary;
  * las cajas, la prioridad de la caja en la fila i se cuenta (i-1)
  * veces. Se minimiza el coste medio (dividido entre l^2).            */
 minimize coste_medio:
-    (1 / (l * l)) * sum{c in CAJAS, i in FILAS, j in COLUMNAS}
+    (1 / n) * sum{c in CAJAS, i in FILAS, j in COLUMNAS}
         (i - 1) * p[c] * x[c,i,j];
 
 /* ----------------------------- Restricciones ------------------------ */
