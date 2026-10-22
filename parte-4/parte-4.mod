@@ -19,7 +19,7 @@
 /* ---------------------------- Parametros ---------------------------- */
 param l, integer, >= 1;                 /* lado del pallet               */
 param h, integer, >= 1;                 /* numero maximo de niveles      */
-param n, integer, >= 1;                 /* numero de cajas               */
+param n, integer, >= 1, <= h * l * l;   /* numero de cajas               */
 param P, >= 0;                          /* coste de montar un pallet     */
 
 set CAJAS    := 1..n;                   /* indice c de cada caja         */
@@ -82,13 +82,7 @@ s.t. como_mucho_una_caja{i in FILAS, j in COLUMNAS, k in NIVELES,
                          m in PALLETS}:
     sum{c in CAJAS: m <= c} x[c,i,j,k,m] <= z[m];
 
-/* (3) No se pueden disponer cajas sobre una posicion vacia: en cada
- *     pallet, la ocupacion del nivel k+1 no puede superar la del k.    */
-s.t. nada_sobre_vacio{i in FILAS, j in COLUMNAS, k in 1..h-1, m in PALLETS}:
-    sum{c in CAJAS: m <= c} x[c,i,j,k+1,m]
-        <= sum{c in CAJAS: m <= c} x[c,i,j,k,m];
-
-/* (4) Orden de prioridad en cada columna, nivel y pallet. Una posicion
+/* (3) Orden de prioridad en cada columna, nivel y pallet. Una posicion
  *     vacia tiene prioridad +infinito, representada con pmax + 1: las
  *     posiciones vacias quedan siempre al fondo.                       */
 s.t. orden_prioridad{i in 1..l-1, j in COLUMNAS, k in NIVELES, m in PALLETS}:
@@ -97,7 +91,7 @@ s.t. orden_prioridad{i in 1..l-1, j in COLUMNAS, k in NIVELES, m in PALLETS}:
     <= sum{c in CAJAS: m <= c} p[c] * x[c,i,j,k,m]
         + (pmax + 1) * (1 - sum{c in CAJAS: m <= c} x[c,i,j,k,m]);
 
-/* (5) Capacidad: la caja en (i,j,k) del pallet m debe soportar el peso
+/* (4) Capacidad: la caja en (i,j,k) del pallet m debe soportar el peso
  *     de todas las cajas apiladas encima de ella en ese mismo pallet.
  *     Ningun pallet tiene mas de h niveles porque el indice k solo toma
  *     los valores 1..h.                                                */
@@ -105,18 +99,26 @@ s.t. capacidad{i in FILAS, j in COLUMNAS, k in 1..h-1, m in PALLETS}:
     sum{c in CAJAS: m <= c} y[c] * x[c,i,j,k,m]
         >= sum{kk in k+1..h, c in CAJAS: m <= c} w[c] * x[c,i,j,kk,m];
 
-/* (6) Ruptura de simetrias: los pallets se usan en orden, solo se monta
- *     el pallet m+1 si se ha montado el m.                             */
-s.t. pallets_en_orden{m in 1..M-1}:
-    z[m+1] <= z[m];
+/* (5) No se pueden disponer cajas sobre una posicion vacia: en cada
+ *     pallet, la ocupacion del nivel k+1 no puede superar la del k.    */
+s.t. nada_sobre_vacio{i in FILAS, j in COLUMNAS, k in 1..h-1, m in PALLETS}:
+    sum{c in CAJAS: m <= c} x[c,i,j,k+1,m]
+        <= sum{c in CAJAS: m <= c} x[c,i,j,k,m];
 
-/* (7) Coste de cada posicion. Si esta ocupada, u es al menos la suma de
+/* (6) Coste de cada posicion. Si esta ocupada, u es al menos la suma de
  *     prioridades de las cajas que tiene delante en su columna, nivel y
  *     pallet. Si esta vacia, (l-i)*pmax es una cota superior de esa suma
  *     y la restriccion se relaja, de modo que u puede valer 0.         */
 s.t. coste_posicion{i in 1..l-1, j in COLUMNAS, k in NIVELES, m in PALLETS}:
     u[i,j,k,m] >= sum{ii in i+1..l, c in CAJAS: m <= c} p[c] * x[c,ii,j,k,m]
                   - (l - i) * pmax * (1 - sum{c in CAJAS: m <= c} x[c,i,j,k,m]);
+
+
+/* (7) Ruptura de simetrias: los pallets se usan en orden, solo se monta
+ *     el pallet m+1 si se ha montado el m.                             */
+s.t. pallets_en_orden{m in 1..M-1}:
+    z[m+1] <= z[m];
+
 
 solve;
 
