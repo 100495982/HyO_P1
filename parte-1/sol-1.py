@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+
 """
 Heuristica y Optimizacion - Practica 1, Parte 1
-Uso:  ./sol-1.py <fichero-entrada> <fichero-salida.dat>
 
 1. Lee el fichero de entrada (l en la 1a linea, prioridades en la 2a).
 2. Genera el fichero .dat indicado como segundo argumento (no se borra).
 3. Invoca glpsol con parte-1.mod y el .dat generado.
 4. Muestra en pantalla: <num. variables> <num. restricciones> <objetivo>
-5. Escribe la disposicion optima de forma grafica en un fichero de
-   salida con el mismo nombre que el .dat y extension .out
+5. Escribe la disposicion optima de forma grafica en un fichero de salida con el mismo nombre que el .dat y extension .out
 """
 
 import os
@@ -23,7 +22,7 @@ MODELO = os.path.join(DIR_SCRIPT, "parte-1.mod")
 
 
 def resolver_ruta(ruta):
-    """Si la ruta no contiene directorio, se asume el del script."""
+    "Si la ruta no contiene directorio, toma el del script."
     if os.path.dirname(ruta) == "":
         return os.path.join(DIR_SCRIPT, ruta)
     return ruta
@@ -35,7 +34,7 @@ def error(msg):
 
 
 def leer_entrada(ruta):
-    """Devuelve (l, lista de prioridades)."""
+    "Devuelve (l, lista de prioridades)."
     try:
         with open(ruta, "r", encoding="utf-8") as f:
             lineas = [ln.split() for ln in f if ln.strip()]
@@ -61,7 +60,7 @@ def leer_entrada(ruta):
 
 
 def escribir_dat(ruta, l, prioridades):
-    """Genera el fichero de datos en formato MathProg."""
+    "Genera el fichero de datos en formato MathProg."
     with open(ruta, "w", encoding="utf-8") as f:
         f.write("data;\n\n")
         f.write(f"param l := {l};\n\n")
@@ -72,7 +71,7 @@ def escribir_dat(ruta, l, prioridades):
 
 
 def ejecutar_glpk(ruta_dat):
-    """Invoca glpsol y devuelve (n_vars, n_restr, objetivo, asignacion)."""
+    "Invoca glpsol y devuelve (n_vars, n_restr, objetivo, asignacion)."
     with tempfile.TemporaryDirectory() as tmp:
         f_salida = os.path.join(tmp, "glpk.out")      # informe de glpsol
         f_display = os.path.join(tmp, "glpk.disp")    # printf del modelo
@@ -116,7 +115,7 @@ def ejecutar_glpk(ruta_dat):
 
 
 def escribir_solucion(ruta, l, prioridades, objetivo, asignacion):
-    """Dibuja el pallet (vista cenital). Fila l arriba, junto al acceso."""
+    "Dibuja el pallet (vista cenital). Fila l arriba, junto al acceso."
     ancho = max(7, max(len(str(p)) for p in prioridades) + 2)
     sep = "+" + "+".join(["-" * ancho] * l) + "+"
     margen = " " * 9

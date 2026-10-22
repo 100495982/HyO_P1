@@ -1,16 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+
 """
 Heuristica y Optimizacion - Practica 1, Parte 4
-Uso:  ./sol-4.py <fichero-entrada> <fichero-salida.dat>
 
-1. Lee el fichero de entrada (l, h y P en la 1a linea, y en las lineas 2, 3
-   y 4 las prioridades, pesos y capacidades de las n cajas).
+1. Lee el fichero de entrada (l, h y P en la 1a linea, y en las lineas 2, 3 y 4 las prioridades, pesos y capacidades de las n cajas).
 2. Genera el fichero .dat indicado como segundo argumento (no se borra).
 3. Invoca glpsol con parte-4.mod y el .dat generado.
 4. Muestra en pantalla: <num. variables> <num. restricciones> <objetivo>
-5. Escribe la disposicion optima de forma grafica (pallet a pallet y nivel
-   a nivel) en un fichero de salida con el mismo nombre que el .dat y
+5. Escribe la disposicion optima de forma grafica (pallet a pallet y nivel a nivel) en un fichero de salida con el mismo nombre que el .dat y
    extension .out
 """
 
@@ -37,7 +35,7 @@ OPCIONES_GLPK = ["--cuts", "--pcost"]
 
 
 def resolver_ruta(ruta):
-    """Si la ruta no contiene directorio, se asume el del script."""
+    "Si la ruta no contiene directorio, toma el del script."
     if os.path.dirname(ruta) == "":
         return os.path.join(DIR_SCRIPT, ruta)
     return ruta
@@ -49,13 +47,13 @@ def error(msg):
 
 
 def numero(texto):
-    """Convierte a int si es entero; si no, a float (P puede ser real)."""
+    "Convierte a int si es entero; si no, a float (P puede ser real)."
     valor = float(texto)
     return int(valor) if valor.is_integer() else valor
 
 
 def leer_entrada(ruta):
-    """Devuelve (l, h, P, prioridades, pesos, capacidades)."""
+    "Devuelve (l, h, P, prioridades, pesos, capacidades)."
     try:
         with open(ruta, "r", encoding="utf-8") as f:
             lineas = [ln.replace(",", " ").split() for ln in f if ln.strip()]
@@ -63,8 +61,7 @@ def leer_entrada(ruta):
         error(f"no se puede leer '{ruta}': {e}")
 
     if len(lineas) < 4:
-        error("el fichero de entrada debe tener 4 lineas "
-              "(l h P, prioridades, pesos y capacidades)")
+        error("el fichero de entrada debe tener 4 lineas (l h P, prioridades, pesos y capacidades)")
     try:
         l, h = int(lineas[0][0]), int(lineas[0][1])
         coste_pallet = numero(lineas[0][2])
@@ -72,8 +69,7 @@ def leer_entrada(ruta):
         pesos = [int(v) for v in lineas[2]]
         capacidades = [int(v) for v in lineas[3]]
     except (ValueError, IndexError):
-        error("el fichero de entrada contiene valores no validos "
-              "o faltan valores en la primera linea (l h P)")
+        error("el fichero de entrada contiene valores no validos o faltan valores en la primera linea (l h P)")
 
     if l < 1 or h < 1:
         error("el lado del pallet y el numero de niveles deben ser >= 1")
@@ -93,7 +89,7 @@ def leer_entrada(ruta):
 
 
 def escribir_dat(ruta, l, h, coste_pallet, prioridades, pesos, capacidades):
-    """Genera el fichero de datos en formato MathProg."""
+    "Genera el fichero de datos en formato MathProg."
     with open(ruta, "w", encoding="utf-8") as f:
         f.write("data;\n\n")
         f.write(f"param l := {l};\n")
@@ -110,8 +106,7 @@ def escribir_dat(ruta, l, h, coste_pallet, prioridades, pesos, capacidades):
 
 
 def ejecutar_glpk(ruta_dat):
-    """Invoca glpsol y devuelve
-    (n_vars, n_restr, objetivo, num_pallets, asignacion)."""
+    "Invoca glpsol y devuelve (n_vars, n_restr, objetivo, num_pallets, asignacion)."
     with tempfile.TemporaryDirectory() as tmp:
         f_salida = os.path.join(tmp, "glpk.out")      # informe de glpsol
         f_display = os.path.join(tmp, "glpk.disp")    # printf del modelo
@@ -137,8 +132,7 @@ def ejecutar_glpk(ruta_dat):
             error("limite de tiempo alcanzado sin encontrar ninguna solucion")
         error("el problema no tiene solucion factible")
     if limite:
-        print("Aviso: limite de tiempo alcanzado; se usa la mejor solucion "
-              "encontrada (no se ha demostrado que sea optima)",
+        print("Aviso: limite de tiempo alcanzado; se usa la mejor solucion encontrada (no se ha demostrado que sea optima)",
               file=sys.stderr)
 
     # 'Rows' incluye la fila de la funcion objetivo -> se resta 1
@@ -167,17 +161,15 @@ def ejecutar_glpk(ruta_dat):
 
 
 def coste_caja(asignacion, prioridades, l, i, j, k, m):
-    """Suma de prioridades de las cajas delante de (i,j,k) en el pallet m."""
+    "Suma de prioridades de las cajas delante de (i,j,k) en el pallet m."
     return sum(prioridades[asignacion[(ii, j, k, m)] - 1]
                for ii in range(i + 1, l + 1) if (ii, j, k, m) in asignacion)
 
 
 def escribir_solucion(ruta, l, h, coste_pallet, prioridades, pesos,
                       capacidades, objetivo, num_pallets, asignacion):
-    """Dibuja cada nivel de cada pallet usado (vista cenital).
-    Fila l arriba, junto al acceso. Cada celda muestra: peso (arriba a la
-    izquierda), prioridad (centro) y capacidad (abajo a la derecha).
-    Las posiciones vacias se dejan en blanco."""
+    """Dibuja cada nivel de cada pallet usado (vista cenital). Fila l arriba, junto al acceso. Cada celda muestra: peso (arriba a la
+    izquierda), prioridad (centro) y capacidad (abajo a la derecha). Las posiciones vacias se dejan en blanco."""
     n = len(prioridades)
     ancho = max(9, len(f"w={max(pesos)}") + 2, len(f"c={max(capacidades)}") + 2,
                 len(f"p={max(prioridades)}") + 2)
@@ -198,10 +190,8 @@ def escribir_solucion(ruta, l, h, coste_pallet, prioridades, pesos,
                   f"(cajas: {coste_cajas} + pallets: {len(usados)} x "
                   f"{coste_pallet})")
     lineas.append("")
-    lineas.append("Cada celda muestra: w = peso (arriba izquierda), "
-                  "p = prioridad (centro, 1 = maxima),")
-    lineas.append("c = capacidad (abajo derecha). Nivel 1 = inferior. "
-                  "Las posiciones vacias se dejan en blanco.")
+    lineas.append("Cada celda muestra: w = peso (arriba izquierda), p = prioridad (centro, 1 = maxima),")
+    lineas.append("c = capacidad (abajo derecha). Nivel 1 = inferior. Las posiciones vacias se dejan en blanco.")
 
     for num, m in enumerate(usados, start=1):
         lineas.append("")
@@ -239,8 +229,7 @@ def escribir_solucion(ruta, l, h, coste_pallet, prioridades, pesos,
                 lineas.append(margen + sep)
 
     lineas.append("")
-    lineas.append("Detalle pallet: (fila, columna, nivel) -> caja [prioridad, "
-                  "peso, capacidad] : coste ; peso soportado")
+    lineas.append("Detalle pallet: (fila, columna, nivel) -> caja [prioridad, peso, capacidad] : coste ; peso soportado")
     for num, m in enumerate(usados, start=1):
         for k in range(1, h + 1):
             for i in range(l, 0, -1):

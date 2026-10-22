@@ -1,16 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+
 """
 Heuristica y Optimizacion - Practica 1, Parte 2
-Uso:  ./sol-2.py <fichero-entrada> <fichero-salida.dat>
 
-1. Lee el fichero de entrada (l y h en la 1a linea, prioridades en la 2a,
-   pesos en la 3a y capacidades en la 4a).
+1. Lee el fichero de entrada (l y h en la 1a linea, prioridades en la 2a, pesos en la 3a y capacidades en la 4a).
 2. Genera el fichero .dat indicado como segundo argumento (no se borra).
 3. Invoca glpsol con parte-2.mod y el .dat generado.
 4. Muestra en pantalla: <num. variables> <num. restricciones> <objetivo>
-5. Escribe la disposicion optima de forma grafica en un fichero de
-   salida con el mismo nombre que el .dat y extension .out
+5. Escribe la disposicion optima de forma grafica en un fichero de salida con el mismo nombre que el .dat y extension .out
 """
 
 import os
@@ -24,7 +22,7 @@ MODELO = os.path.join(DIR_SCRIPT, "parte-2.mod")
 
 
 def resolver_ruta(ruta):
-    """Si la ruta no contiene directorio, se asume el del script."""
+    "Si la ruta no contiene directorio, toma el del script."
     if os.path.dirname(ruta) == "":
         return os.path.join(DIR_SCRIPT, ruta)
     return ruta
@@ -36,7 +34,7 @@ def error(msg):
 
 
 def leer_entrada(ruta):
-    """Devuelve (l, h, prioridades, pesos, capacidades)."""
+    "Devuelve (l, h, prioridades, pesos, capacidades)."
     try:
         with open(ruta, "r", encoding="utf-8") as f:
             lineas = [ln.split() for ln in f if ln.strip()]
@@ -44,8 +42,7 @@ def leer_entrada(ruta):
         error(f"no se puede leer '{ruta}': {e}")
 
     if len(lineas) < 4:
-        error("el fichero de entrada debe tener 4 lineas "
-              "(l y h, prioridades, pesos y capacidades)")
+        error("el fichero de entrada debe tener 4 lineas (l y h, prioridades, pesos y capacidades)")
     try:
         l = int(lineas[0][0])
         h = int(lineas[0][1])
@@ -53,8 +50,7 @@ def leer_entrada(ruta):
         pesos = [int(v) for v in lineas[2]]
         capacidades = [int(v) for v in lineas[3]]
     except (ValueError, IndexError):
-        error("el fichero de entrada contiene valores no enteros "
-              "o falta alguno en la primera linea")
+        error("el fichero de entrada contiene valores no enteros o falta alguno en la primera linea")
 
     if l < 1 or h < 1:
         error("el lado del pallet y el numero de niveles deben ser >= 1")
@@ -72,7 +68,7 @@ def leer_entrada(ruta):
 
 
 def escribir_dat(ruta, l, h, prioridades, pesos, capacidades):
-    """Genera el fichero de datos en formato MathProg."""
+    "Genera el fichero de datos en formato MathProg."
     with open(ruta, "w", encoding="utf-8") as f:
         f.write("data;\n\n")
         f.write(f"param l := {l};\n")
@@ -87,7 +83,7 @@ def escribir_dat(ruta, l, h, prioridades, pesos, capacidades):
 
 
 def ejecutar_glpk(ruta_dat):
-    """Invoca glpsol y devuelve (n_vars, n_restr, objetivo, asignacion)."""
+    "Invoca glpsol y devuelve (n_vars, n_restr, objetivo, asignacion)."
     with tempfile.TemporaryDirectory() as tmp:
         f_salida = os.path.join(tmp, "glpk.out")      # informe de glpsol
         f_display = os.path.join(tmp, "glpk.disp")    # printf del modelo
@@ -132,8 +128,7 @@ def ejecutar_glpk(ruta_dat):
 
 def escribir_solucion(ruta, l, h, prioridades, pesos, capacidades,
                       objetivo, asignacion):
-    """Dibuja cada nivel del pallet (vista cenital).
-    Fila l arriba, junto al acceso. Cada celda muestra: peso (arriba a la
+    """Dibuja cada nivel del pallet (vista cenital). Fila l arriba, junto al acceso. Cada celda muestra: peso (arriba a la
     izquierda), prioridad (centro) y capacidad (abajo a la derecha)."""
     ancho = max(9, len(f"w={max(pesos)}") + 2, len(f"c={max(capacidades)}") + 2,
                 len(f"p={max(prioridades)}") + 2)
@@ -168,8 +163,7 @@ def escribir_solucion(ruta, l, h, prioridades, pesos, capacidades,
             lineas.append(margen + sep)
 
     lineas.append("")
-    lineas.append("Detalle (fila, columna, nivel) -> caja [prioridad, peso, "
-                  "capacidad] : coste ; peso soportado")
+    lineas.append("Detalle (fila, columna, nivel) -> caja [prioridad, peso, capacidad] : coste ; peso soportado")
     for k in range(1, h + 1):
         for i in range(l, 0, -1):
             for j in range(1, l + 1):
