@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 
 """
-Heuristica y Optimizacion - Practica 1, Parte 1
-
 1. Lee el fichero de entrada (l en la 1a linea, prioridades en la 2a).
 2. Genera el fichero .dat indicado como segundo argumento (no se borra).
 3. Invoca glpsol con parte-1.mod y el .dat generado.
